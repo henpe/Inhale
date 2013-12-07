@@ -1,163 +1,89 @@
-var outputEl = document.getElementById('output');
+var app = {
 
-var oldX = oldY = oldZ = 0;
-var factor = 0.05;
-var valuesArray = [],
-	valuesSize = 50,
-	smoothSize = 50,
-	chartValues = new TimeSeries(),
-	minZ,
-	maxZ;
-
-var chart = new SmoothieChart();
-chart.addTimeSeries(chartValues, { strokeStyle: 'rgba(0, 255, 0, 1)', fillStyle: 'rgba(0, 255, 0, 0.2)', lineWidth: 4 });
-chart.streamTo(document.getElementById("chart"), 500);	
-
-var startTime = new Date().getTime(),
-	restingValues = [],
-	restingValue;
-
-
-var distance_X = 0
-var velocity_X = 0
-var lastSampleTime = 0;
-
-
-function update_acceleration_X (acceleration_X) {
-    velocity_X = velocity_X + acceleration_X
-    distance_X = distance_X + velocity_X
-}
-
-// To use the distance value just read the distance_X variable:
-function get_distance_X_and_reset () {
-    x = distance_X
-    distance_X = 0
-    return x
-}
-
-window.ondevicemotion = _.throttle(function(event) {  
-	var runningTime = (new Date().getTime() - startTime) / 1000;
-    var accelerationX = event.acceleration.x;
-    var accelerationY = event.acceleration.y;
-    var accelerationZ = event.acceleration.z;
-
-    update_acceleration_X(accelerationZ);
-
-    //var distance = runningTime * accelerationZ;
-    var timeDelta = (new Date().getTime() - lastSampleTime) / 1000;
-    var distance = (accelerationZ * 9.82 * timeDelta) + (accelerationZ * 9.82 * timeDelta * timeDelta) / 2;
-    distance *= 1000;
-    //var distance = 0.5 * accelerationZ * Math.pow(timeDelta, 2);
-
-    // Calculate resting value
-    if (runningTime <= 5) {
-    	restingValues.push(accelerationZ);
-    	restingValue = average(restingValues);
-    }
-
-    // Offset from rest value
-    accelerationZ += restingValue;
-
-    // Array used to average 
-    valuesArray.push(accelerationZ);
-    if (valuesArray.length > smoothSize) {
-    	valuesArray.shift();
-    }
-
-    var smoothedValue = average(valuesArray);
-
-    //smoothedValue *= 1000;
-
-    /*outputEl.innerHTML = 'Smooth: ' + (smoothedValue)
-    			       + '<br>Running Time: ' + runningTime
-    			       + '<br>restingValue:' + restingValue 
-    				   + '<br>Distance: ' + distance
-    				   + '<br>Array size: ' + valuesArray.length;
+    restingValue: 0,
+    restingValues: [],
+    oldZ: 0,
     
+    init: function() {
 
-    /*valuesArray.push(accelerationZ);
-    if (valuesArray.length > valuesSize) {
-    	valuesArray.shift();
-    }*/
+        var self = this;        
 
-    minZ = _.min(valuesArray);
-    maxZ = _.max(valuesArray);
+        $('.btn-start').on('click', function() {
+            window.ondevicemotion = self.throttledHandleMotion;
+            self.setupChart();
+            self.startAudio();
+            self.startTime = new Date().getTime();
+        });
+    },
 
-    accelerationX = accelerationX * factor + oldX * (1 - factor);
-    accelerationY = accelerationY * factor + oldY * (1 - factor);
-    accelerationZ = accelerationZ * factor + oldZ * (1 - factor);
+    setupChart: function() {
+        var chart = new SmoothieChart({
+                grid:{
+                    fillStyle:'transparent', 
+                    strokeStyle:'transparent', 
+                    borderVisible:false
+                },
+                labels:{disabled:true}
+            }),
+            canvas = document.getElementById('chart');
 
-    oldX = accelerationX;
-    oldY = accelerationY;
-    oldZ = accelerationZ;
+        this.chartSeries = new TimeSeries();
+        chart.addTimeSeries(this.chartSeries, {lineWidth:3.3});
+        chart.streamTo(canvas, 500);
+    },
 
-    audioFrequency = Math.abs(accelerationZ * 5000);
+    throttledHandleMotion: _.throttle(function(event) {
+        var smoothingFactor = 0.05;
+        var runningTime = (new Date().getTime() - app.startTime) / 1000;
+        var accelerationZ = event.acceleration.z;
 
-    outputEl.innerHTML = 'minZ:' + minZ 
-    					 + '<br>maxZ:' + maxZ 
-    					 + '<br>timeDelta:' + timeDelta
-    					 + '<br>restingValue:' + restingValue
-    					 + '<br>distance:' + distance
-    					 + '<br>audioFrequency:' + audioFrequency 
-    					 + '<br>Z:' + (accelerationZ);
+        // Calculate resting value
+        if (runningTime <= 5) {
+            app.restingValues.push(accelerationZ);
+            app.restingValue = app.average(app.restingValues);
+        }
 
+        // Offset from rest value
+        console.log(app.restingValue);
+        accelerationZ += app.restingValue;
 
+        accelerationZ = accelerationZ * smoothingFactor + app.oldZ * (1 - smoothingFactor);
 
-    chartValues.append(new Date().getTime(), distance);
-    lastSampleTime = new Date().getTime();
-}, 10);
+        app.oldZ = accelerationZ;
 
+        var audioFrequency = Math.abs(accelerationZ * 5000);
+        app.setAudioFrequency(audioFrequency);
 
-function average(arr) {
-	return _.reduce(arr, function(memo, num) {
-		return memo + num;
-	}, 0) / arr.length;
-}
-
-
-function startAudio() {
-	var glide = T("param", {value:880});
-	var VCO = T("sin", {freq:glide, mul:2}).play();
-
-	T("+sin", {freq:10}, api).play();
-
-	setInterval(function() {
-		//osc.frequency.value += 50;
-		//VCO.freq.value = audioFrequency;
-		glide.linTo(audioFrequency, '100ms')
-	}, 10);
-
-
-	/*
-	var api = T("WebAudioAPI:recv");
-	var context = api.context;
-
-	var osc = context.createOscillator();
-	osc.frequency.value = 280;
-	osc.noteOn(0);
-
-	api.recv(osc);
-
-	T("+sin", {freq:0.5}, api).play();
-
-	setInterval(function() {
-		//osc.frequency.value += 50;
-		osc.frequency.value = audioFrequency;
-	}, 500);*/
-}
+        /*document.getElementById('output').innerHTML = + '<br>restingValue:' + app.restingValue
+                             + '<br>audioFrequency:' + audioFrequency 
+                             + '<br>Z:' + (accelerationZ);*/
 
 
-// convertToRange(20,[10,50],[5,10]);
-function convertToRange(value, srcRange, dstRange){
-  // value is outside source range return
-  if (value < srcRange[0] || value > srcRange[1]){
-    return NaN; 
-  }
 
-  var srcMax = srcRange[1] - srcRange[0],
-      dstMax = dstRange[1] - dstRange[0],
-      adjValue = value - srcRange[0];
+        app.chartSeries.append(new Date().getTime(), accelerationZ);
+    }, 10),
 
-  return (adjValue * dstMax / srcMax) + dstRange[0];
 
-}
+    startAudio: function() {
+        this.glide = T("param", {value:880});
+
+        T("sin", {freq:this.glide, mul:2}).play();
+        //T("+sin", {freq:10}, api).play();
+    },
+
+    setAudioFrequency: function(freq) {
+        this.glide.linTo(freq, '100ms');
+    },
+
+    average: function(arr) {
+        return _.reduce(arr, function(memo, num) {
+            return memo + num;
+        }, 0) / arr.length;
+    }
+
+};
+
+
+$(function() {
+    app.init();
+})
