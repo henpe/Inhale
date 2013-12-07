@@ -13,6 +13,8 @@ var app = {
             self.setupChart();
             self.startAudio();
             self.startTime = new Date().getTime();
+
+            $(this).hide();
         });
     },
 
