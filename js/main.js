@@ -34,6 +34,9 @@ var app = {
     },
 
     buttonBreathe: function() {
+        // This makes the Start button 'breathe' on startup
+        // Thanks to http://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
+        
         if (this.appRunning) return; // No need to do this anymore
 
         var now = new Date().getTime(),
@@ -41,7 +44,6 @@ var app = {
             opacity = (breathingValue/255) * 1;
 
         this.$startButtonEl.css('opacity', opacity);
-
         requestAnimationFrame(function() {
             app.buttonBreathe();
         });
