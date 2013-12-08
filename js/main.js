@@ -45,7 +45,7 @@ var app = {
         this.guideChartSeries = new TimeSeries();
 
         chart.addTimeSeries(this.chartSeries, {lineWidth:3.3});
-        chart.addTimeSeries(this.guideChartSeries, {lineWidth:3.3, strokeStyle: 'rgba(100,100,100,0.8)'});
+        chart.addTimeSeries(this.guideChartSeries, {lineWidth:2.3, strokeStyle: 'rgba(255,255,255,0.2)'});
         chart.streamTo(canvas, 100);
     },
 
