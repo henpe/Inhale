@@ -55,8 +55,6 @@ var app = {
 
     setupChart: function() {
         var chart = new SmoothieChart({
-                //minValue: 0,
-                //maxValue: 100,
                 grid:{
                     fillStyle:'transparent',
                     strokeStyle:'transparent',
@@ -64,14 +62,27 @@ var app = {
                 },
                 labels:{disabled:true}
             }),
-            canvas = document.getElementById('chart');
+            guideChart = new SmoothieChart({
+                minValue: -1,
+                maxValue: 1,
+                grid:{
+                    fillStyle:'transparent',
+                    strokeStyle:'transparent',
+                    borderVisible:false
+                },
+                labels:{disabled:true}
+            }),
+            canvas = document.getElementById('chart'),
+            guideCanvas = document.getElementById('guide-chart');
 
         this.chartSeries = new TimeSeries();
         this.guideChartSeries = new TimeSeries();
 
         chart.addTimeSeries(this.chartSeries, {lineWidth:3.3});
-        chart.addTimeSeries(this.guideChartSeries, {lineWidth:2.3, strokeStyle: 'rgba(255,255,255,0.2)'});
         chart.streamTo(canvas, 100);
+
+        guideChart.addTimeSeries(this.guideChartSeries, {lineWidth:2.3, strokeStyle: 'rgba(255,255,255,0.2)'});
+        guideChart.streamTo(guideCanvas, 100);
     },
 
     handleMotion: function() {

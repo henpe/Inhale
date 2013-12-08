@@ -27,15 +27,24 @@ body {
 	z-index: 100;
 }
 
-#chart {
+.charts {
 	-webkit-mask: -webkit-linear-gradient(left, rgba(0,0,0,0) 10%,rgba(0,0,0,1) 30%,rgba(0,0,0,1) 70%,rgba(0,0,0,0) 90%);
 	/*-webkit-filter: blur(4px);*/
+	position: relative;
+	width: 320px;
+	height: 200px;
+	margin: 0 auto;
 }
 
+.charts canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
 
 @-webkit-keyframes pulse {
    0% {opacity:0.1;}
    25% {opacity:0.1;}
-   50% {opacity:0.8;}   
+   50% {opacity:0.8;}
    100% {opacity:0.1;}
 }
