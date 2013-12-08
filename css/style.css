@@ -11,7 +11,29 @@ body {
 	text-align: center;
 }
 
+.btn-start {
+	font-family: "Helvetica Neue", sans-serif;
+	font-weight: 200;
+	font-size: 25px;
+	-webkit-animation:pulse 4s infinite;
+	height: 150px;
+	width: 150px;
+	border-radius: 75px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -75px;
+	margin-left: -75px;
+}
+
 #chart {
 	-webkit-mask: -webkit-linear-gradient(left, rgba(0,0,0,0) 10%,rgba(0,0,0,1) 30%,rgba(0,0,0,1) 70%,rgba(0,0,0,0) 90%);
 	/*-webkit-filter: blur(4px);*/
+}
+
+
+@-webkit-keyframes pulse {
+   0% {opacity:0.1;}
+   50% {opacity:0.8;}
+   100% {opacity:0.1;}
 }
