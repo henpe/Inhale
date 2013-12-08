@@ -1,6 +1,7 @@
 vz = z = 0;
 var app = {
 
+    appRunning: false,
     restingValue: 0,
     restingValues: [],
     oldZ: 0,
@@ -13,7 +14,9 @@ var app = {
 
         var self = this;
 
-        $('.btn-start').on('click', function() {
+        self.$startButtonEl = $('.btn-start');
+
+        self.$startButtonEl.on('click', function() {
             window.ondevicemotion = function(event) {
                 self.deviceMotionEvent = event;
             };
@@ -23,10 +26,26 @@ var app = {
 
             self.handleMotion();
 
+            self.appRunning = true;
             $(this).hide();
         });
+
+        this.buttonBreathe();
     },
 
+    buttonBreathe: function() {
+        if (this.appRunning) return; // No need to do this anymore
+
+        var now = new Date().getTime(),
+            breathingValue = (Math.exp(Math.sin(now/2000.0*Math.PI)) - 0.36787944)*108.0,
+            opacity = (breathingValue/255) * 1;
+
+        this.$startButtonEl.css('opacity', opacity);
+
+        requestAnimationFrame(function() {
+            app.buttonBreathe();
+        });
+    },
 
     setupChart: function() {
         var chart = new SmoothieChart({
@@ -100,7 +119,7 @@ var app = {
     startAudio: function() {
         this.glide = T("param", {value:880});
 
-        this.audio = T("sin", {freq:this.glide, mul:6}).play();
+        this.audio = T("noise", {freq:this.glide, mul:6}).play();
         //T("+sin", {freq:10}, api).play();
     },
 

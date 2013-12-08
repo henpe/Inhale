@@ -15,7 +15,7 @@ body {
 	font-family: "Helvetica Neue", sans-serif;
 	font-weight: 200;
 	font-size: 25px;
-	-webkit-animation:pulse 4s infinite;
+	/*-webkit-animation:pulse 8s infinite;*/
 	height: 150px;
 	width: 150px;
 	border-radius: 75px;
@@ -35,6 +35,7 @@ body {
 
 @-webkit-keyframes pulse {
    0% {opacity:0.1;}
-   50% {opacity:0.8;}
+   25% {opacity:0.1;}
+   50% {opacity:0.8;}   
    100% {opacity:0.1;}
 }
