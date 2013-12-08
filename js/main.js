@@ -9,7 +9,7 @@ var app = {
     deviceMotionEvent: {
         acceleration : { x: 0, y: 0, z: 0} // just some defaults
     },
-    
+
     init: function() {
 
         var self = this;
@@ -28,6 +28,10 @@ var app = {
 
             self.appRunning = true;
             $(this).hide();
+
+            setInterval(function() {
+                self.updateChart();
+            }, 250);
         });
 
         this.buttonBreathe();
@@ -36,7 +40,7 @@ var app = {
     buttonBreathe: function() {
         // This makes the Start button 'breathe' on startup
         // Thanks to http://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
-        
+
         if (this.appRunning) return; // No need to do this anymore
 
         var now = new Date().getTime(),
@@ -73,11 +77,12 @@ var app = {
     handleMotion: function() {
 
         var smoothingFactor = 0.01;
-        var runningTime = (new Date().getTime() - app.startTime) / 1000;
         var accelerationZ = (app.deviceMotionEvent.acceleration.z * 100);
 
+        this.runningTime = (new Date().getTime() - app.startTime) / 1000;
+
         // Calculate resting value
-        if (runningTime <= 5) {
+        if (this.runningTime <= 5) {
             app.restingValues.push(accelerationZ);
             app.restingValue = app.average(app.restingValues);
         }
@@ -93,28 +98,39 @@ var app = {
         var diff = Math.abs(accelerationZ) - Math.abs(app.oldZ),
             direction = (Math.round(accelerationZ > app.oldZ)) ? 'up' : 'down';
 
-        document.getElementById('output').innerHTML = Math.round(accelerationZ) + ' ' + direction;
+        //document.getElementById('output').innerHTML = Math.round(accelerationZ) + ' ' + direction;
         if (Math.abs(diff) > 0.5) {
-            
-            var audioFrequency = 100 + (diff * 400); //Math.abs(accelerationZ * 10);
-            app.setAudioFrequency(audioFrequency);            
+
+            //var audioFrequency = 100 + (diff * 400); //Math.abs(accelerationZ * 10);
+            var highDiff = diff * 100,
+                audioFrequency = convertToRange(highDiff, [-300, 300], [50, 300]);
+
+            app.setAudioFrequency(audioFrequency);
+
+            //document.getElementById('output').innerHTML = audioFrequency;
         } else {
             //document.getElementById('output').innerHTML = '';
         }
         /*document.getElementById('output').innerHTML = + '<br>restingValue:' + app.restingValue
-                             + '<br>audioFrequency:' + audioFrequency 
+                             + '<br>audioFrequency:' + audioFrequency
                              + '<br>Z:' + (accelerationZ);*/
 
 
         var now = new Date().getTime();
-        app.chartSeries.append(now, accelerationZ);
-        app.guideChartSeries.append(now, Math.sin(runningTime));
+        //app.chartSeries.append(now, accelerationZ);
+        //app.guideChartSeries.append(now, Math.sin(runningTime));
 
         app.oldZ = accelerationZ;
 
         requestAnimationFrame(function() {
             app.handleMotion();
         });
+    },
+
+    updateChart: function() {
+        var now = new Date().getTime();
+        this.chartSeries.append(now, this.oldZ);
+        this.guideChartSeries.append(now, Math.sin(this.runningTime));
     },
 
 
@@ -146,6 +162,19 @@ var app = {
     }
 
 };
+
+function convertToRange(value, srcRange, dstRange){
+  // value is outside source range return
+  if (value < srcRange[0]) { return dstRange[0]; }
+  if (value > srcRange[1]) { return dstRange[1]; }
+
+  var srcMax = srcRange[1] - srcRange[0],
+      dstMax = dstRange[1] - dstRange[0],
+      adjValue = value - srcRange[0];
+
+  return (adjValue * dstMax / srcMax) + dstRange[0];
+
+}
 
 
 $(function() {
