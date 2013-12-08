@@ -98,9 +98,19 @@ var app = {
 
 
     startAudio: function() {
-        this.glide = T("param", {value:880});
+        this.glide = T("param", {value:800});
+        this.audio = T("lpf", {cutoff:this.glide, Q:5}, T("noise", {mul:6})).play();
 
-        this.audio = T("sin", {freq:this.glide, mul:6}).play();
+        /*var self = this;
+        var cutoff = 800;
+        setInterval(function() {
+            if (self.audio.cutoff == 1000) {
+                cutoff = 400;
+            }
+            cutoff += 100;
+            //self.audio.cutoff += 100;
+            self.glide.linTo(cutoff, '100ms');
+        }, 1000);*/
         //T("+sin", {freq:10}, api).play();
     },
 
